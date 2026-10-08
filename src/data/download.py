@@ -18,10 +18,15 @@ import re
 import sys
 from pathlib import Path
 from urllib.error import URLError
-from urllib.request import urlopen, urlretrieve
+from urllib.request import Request, urlopen
 
 DOI = "doi:10.7910/DVN/DBW86T"
 API_BASE = "https://dataverse.harvard.edu/api"
+
+# Harvard Dataverse returns 403 Forbidden to requests with Python's default
+# urllib User-Agent (likely basic bot filtering). A normal browser/CLI UA
+# string is enough to get through.
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) ham10000-download-script/1.0"
 
 # Files are matched by (lowercased) name against these patterns. The exact
 # file names on the Dataverse record were not re-verified when this script
@@ -38,7 +43,8 @@ DEFAULT_KEEP_PATTERNS = [
 
 def list_files() -> list[dict]:
     url = f"{API_BASE}/datasets/:persistentId/?persistentId={DOI}"
-    with urlopen(url, timeout=30) as resp:
+    req = Request(url, headers={"User-Agent": USER_AGENT})
+    with urlopen(req, timeout=30) as resp:
         payload = json.load(resp)
     files = payload["data"]["latestVersion"]["files"]
     return [
@@ -59,7 +65,13 @@ def matches_any(name: str, patterns: list[str]) -> bool:
 def download_file(file_id: int, dest_path: Path) -> None:
     url = f"{API_BASE}/access/datafile/{file_id}"
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    urlretrieve(url, dest_path)
+    req = Request(url, headers={"User-Agent": USER_AGENT})
+    with urlopen(req, timeout=300) as resp, open(dest_path, "wb") as out:
+        while True:
+            chunk = resp.read(1 << 20)
+            if not chunk:
+                break
+            out.write(chunk)
 
 
 def main() -> None:
