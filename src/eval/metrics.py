@@ -8,6 +8,9 @@ comparable.
   calibration slope/intercept from a Cox calibration regression
   (refitting label ~ logit(predicted probability)); slope near 1 and
   intercept near 0 indicate good calibration.
+- Variability: bootstrap_metrics_ci resamples the validation set with
+  replacement to give a 95% CI on every metric above, since a point
+  estimate with no uncertainty isn't a result (course spec section 5.2).
 """
 from dataclasses import dataclass
 
@@ -100,6 +103,43 @@ def calibration_metrics(y_true, y_prob, n_bins: int = 10) -> CalibrationMetrics:
         bin_accuracy=bin_accuracy,
         bin_counts=bin_counts,
     )
+
+
+def bootstrap_metrics_ci(
+    y_true, y_prob, threshold: float = 0.5, n_boot: int = 1000, ci: float = 0.95, seed: int = 42
+) -> dict:
+    """Resample (y_true, y_prob) with replacement n_boot times and return a
+    (lower, upper) percentile interval for each metric. Resamples with only
+    one class present are skipped (AUROC/AUPRC are undefined there)."""
+    y_true = np.asarray(y_true)
+    y_prob = np.asarray(y_prob)
+    n = len(y_true)
+    rng = np.random.default_rng(seed)
+
+    samples = {"auroc": [], "auprc": [], "sensitivity": [], "specificity": [], "brier_score": []}
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, n)
+        yt, yp = y_true[idx], y_prob[idx]
+        if len(np.unique(yt)) < 2:
+            continue
+        disc = discrimination_metrics(yt, yp, threshold)
+        samples["auroc"].append(disc.auroc)
+        samples["auprc"].append(disc.auprc)
+        samples["sensitivity"].append(disc.sensitivity)
+        samples["specificity"].append(disc.specificity)
+        samples["brier_score"].append(brier_score_loss(yt, yp))
+
+    alpha = (1.0 - ci) / 2.0
+    result = {
+        f"{name}_ci": [
+            float(np.percentile(values, 100 * alpha)),
+            float(np.percentile(values, 100 * (1 - alpha))),
+        ]
+        for name, values in samples.items()
+    }
+    result["n_boot"] = len(samples["auroc"])
+    result["ci_level"] = ci
+    return result
 
 
 def reliability_diagram(calibration: CalibrationMetrics, title: str, out_path) -> None:

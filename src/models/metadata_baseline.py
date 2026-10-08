@@ -25,7 +25,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from src.eval.metrics import calibration_metrics, discrimination_metrics, reliability_diagram
+from src.eval.metrics import bootstrap_metrics_ci, calibration_metrics, discrimination_metrics, reliability_diagram
 
 NUMERIC_FEATURES = ["age"]
 CATEGORICAL_FEATURES = ["sex", "localization"]
@@ -82,6 +82,7 @@ def main() -> None:
     val_prob = pipeline.predict_proba(val_df[FEATURE_COLUMNS])[:, 1]
     disc = discrimination_metrics(val_df["label"], val_prob, threshold=args.threshold)
     calib = calibration_metrics(val_df["label"], val_prob)
+    ci = bootstrap_metrics_ci(val_df["label"], val_prob, threshold=args.threshold)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipeline, args.out)
@@ -98,17 +99,23 @@ def main() -> None:
         "n_val": len(val_df),
         "discrimination": {
             "auroc": disc.auroc,
+            "auroc_ci95": ci["auroc_ci"],
             "auprc": disc.auprc,
+            "auprc_ci95": ci["auprc_ci"],
             "sensitivity": disc.sensitivity,
+            "sensitivity_ci95": ci["sensitivity_ci"],
             "specificity": disc.specificity,
+            "specificity_ci95": ci["specificity_ci"],
             "threshold": disc.threshold,
         },
         "calibration": {
             "brier_score": calib.brier_score,
+            "brier_score_ci95": ci["brier_score_ci"],
             "ece": calib.ece,
             "calibration_slope": calib.calibration_slope,
             "calibration_intercept": calib.calibration_intercept,
         },
+        "bootstrap": {"n_boot": ci["n_boot"], "ci_level": ci["ci_level"]},
     }
     with open(args.reports_dir / "metrics.json", "w") as f:
         json.dump(report, f, indent=2)
