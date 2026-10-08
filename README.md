@@ -1,6 +1,6 @@
 # Skin Lesion Triage: Comparing Models and Their Calibration
 
-**EXSU 500: Fundamentals of AI in Medicine, McGill University, Fall 2026 **
+** EXSU 500: Fundamentals of AI in Medicine, McGill University, Fall 2026 **
 
 ## Problem
 
