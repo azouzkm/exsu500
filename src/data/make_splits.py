@@ -1,16 +1,19 @@
 """Build the train/validation/test splits for the HAM10000 binary
 malignancy task, declared once before any model is trained.
 
-- Train/validation come from HAM10000_metadata.csv, split at the LESION
+- Train/validation come from HAM10000_metadata.tab, split at the LESION
   level (GroupShuffleSplit on lesion_id) so images of the same lesion never
   appear in more than one split.
-- Test is the official ISIC 2018 Task 3 test set, read from its
-  ground-truth CSV and touched only at final evaluation.
+- Test is the official ISIC 2018 Task 3 test set. The Harvard Dataverse
+  record gives its ground truth as a tab file with the same
+  lesion_id/image_id/dx schema as the training metadata (not the one-hot
+  MEL/NV/.../ columns of the original ISIC challenge CSV), and it is
+  touched only at final evaluation.
 
 Usage:
     python -m src.data.make_splits \\
-        --metadata data/raw/HAM10000_metadata.csv \\
-        --test-ground-truth data/raw/ISIC2018_Task3_Test_GroundTruth.csv \\
+        --metadata data/raw/HAM10000_metadata.tab \\
+        --test-ground-truth data/raw/ISIC2018_Task3_Test_GroundTruth.tab \\
         --out data/splits --val-size 0.15 --seed 42
 """
 import argparse
@@ -19,19 +22,25 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
-from src.data.labels import ALL_CLASSES, dx_to_binary
+from src.data.labels import dx_to_binary
 
 OUTPUT_COLUMNS = ["image_id", "lesion_id", "dx", "label", "split"]
 
 
-def load_train_val_metadata(metadata_path: Path) -> pd.DataFrame:
-    df = pd.read_csv(metadata_path)
+def load_dx_table(path: Path) -> pd.DataFrame:
+    """Load a lesion_id/image_id/dx table, sniffing tab- vs comma-separated."""
+    df = pd.read_csv(path, sep=None, engine="python")
     required = {"lesion_id", "image_id", "dx"}
     missing = required - set(df.columns)
     if missing:
-        raise ValueError(f"{metadata_path} is missing expected columns: {missing}")
+        raise ValueError(f"{path} is missing expected columns: {missing}")
+    df["dx"] = df["dx"].str.strip().str.lower()
     df["label"] = df["dx"].map(dx_to_binary)
     return df
+
+
+def load_train_val_metadata(metadata_path: Path) -> pd.DataFrame:
+    return load_dx_table(metadata_path)
 
 
 def split_train_val(df: pd.DataFrame, val_size: float, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -49,18 +58,7 @@ def split_train_val(df: pd.DataFrame, val_size: float, seed: int) -> tuple[pd.Da
 
 
 def load_test_ground_truth(path: Path) -> pd.DataFrame:
-    df = pd.read_csv(path)
-    class_cols = [c for c in df.columns if c.lower() in ALL_CLASSES]
-    if not class_cols:
-        raise ValueError(
-            f"{path}: expected one-hot diagnosis columns (one per class in "
-            f"{sorted(ALL_CLASSES)}), found columns {list(df.columns)}"
-        )
-    image_col = "image" if "image" in df.columns else df.columns[0]
-    df = df.rename(columns={image_col: "image_id"})
-    df["dx"] = df[class_cols].idxmax(axis=1).str.lower()
-    df["label"] = df["dx"].map(dx_to_binary)
-    df["lesion_id"] = pd.NA  # not provided for the official test set
+    df = load_dx_table(path)
     df["split"] = "test"
     return df[OUTPUT_COLUMNS]
 
