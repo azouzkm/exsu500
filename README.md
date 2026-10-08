@@ -1,6 +1,6 @@
 # Skin Lesion Triage: Comparing Models and Their Calibration
 
-**EXSU 500: Fundamentals of AI in Medicine, McGill University, Fall 2026 **
+**EXSU 500: Fundamentals of AI in Medicine, McGill University, Fall 2026**
 
 ## Problem
 
@@ -36,6 +36,8 @@ The models are compared on two questions:
 - **Reference comparison:** reader and CNN data from Tschandl et al., *Nature Medicine* 26, 1229–1234 (2020), included in the download. These data are used only for comparison and never for training.
 
 The data are **not** committed to this repository. Download instructions and a download script will be added here.
+
+## Team roles
 
 | Role | Member |
 |---|---|
