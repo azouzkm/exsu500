@@ -1,6 +1,7 @@
 numpy
 pandas
 scikit-learn
+joblib
 scikit-image
 opencv-python-headless
 pillow

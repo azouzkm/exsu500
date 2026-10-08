@@ -1,0 +1,23 @@
+{
+  "model": "metadata_baseline",
+  "features": [
+    "age",
+    "sex",
+    "localization"
+  ],
+  "n_train": 8488,
+  "n_val": 1527,
+  "discrimination": {
+    "auroc": 0.7874694376528117,
+    "auprc": 0.42420431567055805,
+    "sensitivity": 0.8,
+    "specificity": 0.6878565607171964,
+    "threshold": 0.5
+  },
+  "calibration": {
+    "brier_score": 0.1987867368533347,
+    "ece": 0.24144414550058743,
+    "calibration_slope": 0.9286903861701222,
+    "calibration_intercept": -1.4729257623155543
+  }
+}
