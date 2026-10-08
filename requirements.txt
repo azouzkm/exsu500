@@ -1,0 +1,13 @@
+numpy
+pandas
+scikit-learn
+scikit-image
+opencv-python-headless
+pillow
+matplotlib
+seaborn
+torch
+torchvision
+tqdm
+requests
+jupyter
