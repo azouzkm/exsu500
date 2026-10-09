@@ -72,9 +72,9 @@ Validation-set performance (95% bootstrap CI, 1000 resamples), threshold 0.5:
 |---|---|---|---|---|---|---|
 | 1. Metadata baseline (age/sex/site, logistic regression) | 0.787 [0.761, 0.813] | 0.424 [0.376, 0.481] | 0.800 [0.755, 0.845] | 0.688 [0.663, 0.712] | 0.199 | 0.241 |
 | 2. Classical ML (hand-crafted features, gradient boosting) | 0.840 [0.818, 0.862] | 0.555 [0.502, 0.616] | 0.747 [0.697, 0.799] | 0.730 [0.708, 0.756] | 0.160 | 0.163 |
-| 3. CNN | not yet built | | | | | |
+| 3. CNN (trained from scratch, no pretrained backbone) | 0.850 [0.830, 0.869] | 0.528 [0.472, 0.588] | 0.920 [0.889, 0.949] | 0.643 [0.617, 0.668] | 0.197 | 0.253 |
 
-The classical model's AUROC CI doesn't overlap the baseline's, so the gain from adding image information is a real effect, not noise. Both models are noticeably overconfident (reliability diagrams in `reports/*/reliability_diagram.png` sit below the diagonal) — a known side effect of `class_weight="balanced"` shifting predicted probabilities away from the true base rate, and the motivation for the post-hoc recalibration step mentioned above.
+The classical model's AUROC CI doesn't overlap the baseline's, so the gain from adding image information is a real effect, not noise; the CNN's AUROC CI overlaps the classical model's, so that further gain is not clearly distinguishable from noise at this sample size. All three models are noticeably overconfident (reliability diagrams in `reports/*/reliability_diagram.png` sit below the diagonal), worsening from model 1 to model 3 — a known side effect of class-imbalance handling (`class_weight="balanced"` / a `pos_weight` loss) shifting predicted probabilities away from the true base rate, and the motivation for the post-hoc recalibration step mentioned above. The CNN was trained without a pretrained ImageNet backbone because this environment's network policy blocks both `download.pytorch.org` and `huggingface.co`; a transfer-learning model would likely perform better.
 
 ## Team roles
 
