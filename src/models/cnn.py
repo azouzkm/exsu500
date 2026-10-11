@@ -13,7 +13,7 @@ Usage:
     python -m src.models.cnn \\
         --splits-dir data/splits --raw-dir data/raw \\
         --out models/cnn.pt --reports-dir reports/cnn \\
-        --epochs 20 --batch-size 64 --image-size 112
+        --epochs 20 --batch-size 64 --image-size 96 --num-workers 3
 """
 import argparse
 import json
@@ -173,12 +173,12 @@ def main() -> None:
     parser.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--out", type=Path, default=Path("models/cnn.pt"))
     parser.add_argument("--reports-dir", type=Path, default=Path("reports/cnn"))
-    parser.add_argument("--image-size", type=int, default=112)
+    parser.add_argument("--image-size", type=int, default=96)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--patience", type=int, default=5)
-    parser.add_argument("--num-workers", type=int, default=2)
+    parser.add_argument("--num-workers", type=int, default=3)
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
