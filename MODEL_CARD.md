@@ -15,7 +15,7 @@ once post-hoc recalibration is implemented.
   pretrained backbone: this environment's network policy blocks both
   `download.pytorch.org` and `huggingface.co`.
 - **Version:** trained from `data/splits/{train,val}.csv` and
-  `data/raw/HAM10000_images/`, commit `<pending>` on branch
+  `data/raw/HAM10000_images/`, commit `a8635b8` on branch
   `modelling/mourad`.
 
 ## Model selection is a trade-off, not a clear winner
