@@ -29,13 +29,27 @@ The models are compared on two questions:
 - **Licence:** CC BY-NC 4.0 (non-commercial use)
 - **Citation:** Tschandl P, Rosendahl C, Kittler H. The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions. *Scientific Data* 5, 180161 (2018).
 
-**Planned splits:**
+**Splits** (built with `src/data/make_splits.py`, committed under `data/splits/`):
 
-- **Train / validation:** HAM10000, split at the lesion level so that images of the same lesion never appear in more than one set. All tuning and recalibration use the validation set only.
-- **Held-out test:** the official ISIC 2018 Task 3 test set (1,512 images of 1,223 lesions), included in the same download. It is evaluated once, after model selection.
-- **Reference comparison:** reader and CNN data from Tschandl et al., *Nature Medicine* 26, 1229–1234 (2020), included in the download. These data are used only for comparison and never for training.
+| Split | Images | Lesions | Malignant | % malignant |
+|---|---|---|---|---|
+| Train | 8,488 | 6,349 | 1,654 | 19.5% |
+| Validation | 1,527 | 1,121 | 300 | 19.6% |
+| Test (official ISIC 2018 Task 3) | 1,512 | 1,223 | 307 | 20.3% |
 
-The data are **not** committed to this repository. Download instructions and a download script will be added here.
+- **Train / validation:** HAM10000, split at the lesion level (`GroupShuffleSplit` on `lesion_id`) so images of the same lesion never appear in more than one set. All tuning and recalibration use the validation set only.
+- **Held-out test:** the official ISIC 2018 Task 3 test set, evaluated once, after model selection.
+- **Reference comparison:** reader and CNN data from Tschandl et al., *Nature Medicine* 26, 1229–1234 (2020), included in the Dataverse download. Used only for comparison, never for training.
+
+**Getting the data.** The images themselves are **not** committed to this repository (per course policy); only the split manifests (`data/splits/*.csv`, image IDs and labels only) are. To reproduce:
+
+```
+python -m src.data.download --out data/raw
+python -m src.data.make_splits \
+    --metadata data/raw/HAM10000_metadata.tab \
+    --test-ground-truth data/raw/ISIC2018_Task3_Test_GroundTruth.tab \
+    --out data/splits
+```
 
 ## Team roles
 
