@@ -10,7 +10,7 @@ commit history is part of the assessment).
 | Contributor | Team role | CRediT roles so far |
 |---|---|---|
 | Giuliana Curcio | Data lead | Data curation; Software (dataset download script, lesion-level split builder) |
-| Abdul Aziz Mourad | Modelling lead | Methodology; Software (baseline and classical-ML models, shared evaluation harness); Formal analysis; Validation |
+| Abdul Aziz Mourad | Modelling lead | Methodology; Software (all three models — metadata baseline, classical ML, CNN — plus shared evaluation harness and hand-crafted feature extraction); Formal analysis; Validation |
 | Sophie Lee | Interface lead | *Pending — interface not yet built* |
 | Ariel Subekti | Writing lead | *Pending — manuscript not yet started* |
 

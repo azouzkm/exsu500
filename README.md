@@ -10,12 +10,12 @@ We compare three types of model:
 
 1. A baseline using patient metadata only (age, sex, body site).
 2. A classical machine learning model using hand-crafted image features.
-3. A fine-tuned convolutional neural network (CNN).
+3. A convolutional neural network (CNN), trained from scratch (see "Results" below for why this isn't a fine-tuned pretrained backbone as originally planned).
 
 The models are compared on two questions:
 
 - **Discrimination:** how well does each model separate malignant from benign lesions? Measured with AUROC, AUPRC, and sensitivity/specificity at a stated threshold.
-- **Calibration:** can its predicted probabilities be trusted? For example, do lesions given an "80% risk" turn out to be malignant about 80% of the time? Measured with reliability diagrams, Brier score, expected calibration error, and calibration slope and intercept, both before and after post-hoc recalibration.
+- **Calibration:** can its predicted probabilities be trusted? For example, do lesions given an "80% risk" turn out to be malignant about 80% of the time? Measured with reliability diagrams, Brier score, expected calibration error, and calibration slope and intercept. Post-hoc recalibration is planned but not yet implemented (see "Results").
 
 **Why it matters:** skin cancer is the most common cancer, and outcomes depend on catching malignant lesions early. A triage tool is only useful if clinicians can act on its output. A model that ranks lesions well but reports overconfident probabilities can still push referral decisions in the wrong direction.
 
@@ -56,13 +56,14 @@ pip install -r requirements.txt
 # only needed if you don't already have data/features/{train,val}.csv committed:
 python -m src.features.build_feature_table --splits train val
 
-python -m src.models.metadata_baseline   # model 1: metadata-only baseline
-python -m src.models.classical_ml        # model 2: hand-crafted image features
+python -m src.models.metadata_baseline   # model 1: metadata-only baseline (needs data/raw/HAM10000_metadata.tab)
+python -m src.models.classical_ml        # model 2: hand-crafted image features (needs data/features/{train,val}.csv above)
+python -m src.models.cnn                 # model 3: CNN (needs data/raw/HAM10000_images/ directly, ~15-20 min on CPU)
 
 python -m pytest tests/ -q
 ```
 
-Each model script trains on `data/splits/train.csv`, reports on `data/splits/val.csv` only (the test set is touched once, at the end, across all models), and writes its metrics/reliability diagram to `reports/<model>/`.
+Each model script trains on the train split and reports on the val split only (the test set is touched once, at the end, across all models), and writes its metrics/reliability diagram to `reports/<model>/`. Models 1 and 3 read directly from `data/splits/` + `data/raw/`; model 2 reads from the cached `data/features/` tables built above.
 
 ## Results
 
